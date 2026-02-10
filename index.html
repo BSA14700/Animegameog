@@ -64,7 +64,6 @@
             margin-bottom: 5px;
         }
 
-        /* Progress Bar for Level Waves */
         #progress-container {
             width: 100%; height: 6px;
             background: rgba(255,255,255,0.1);
@@ -76,61 +75,87 @@
             transition: width 0.3s;
         }
 
-        /* Character & Dialogue - UPDATED LAYOUT */
-        #character-area {
-            position: absolute; 
-            bottom: 20px; 
-            right: 20px; /* Position in Bottom Right Corner */
-            left: auto;  /* Reset left alignment */
-            width: 140px; 
-            height: 140px; 
-            pointer-events: none;
-            display: flex; 
-            justify-content: center; 
-            align-items: center;
-            z-index: 5;
+        /* --- IMMERSIVE CENTER REACTION OVERLAY --- */
+        #reaction-overlay {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            width: 300px; height: 300px;
+            pointer-events: none; /* Let clicks pass through usually */
+            z-index: 50;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
+            opacity: 0;
         }
 
-        #waifu-sprite {
-            width: 100%; 
-            height: 100%;
-            object-fit: cover; /* Ensures square crop/fill */
-            border-radius: 15px;
-            border: 3px solid rgba(255,255,255,0.2);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.6);
-            transition: transform 0.2s;
+        #reaction-overlay.active {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+        }
+
+        #reaction-image {
+            width: 220px; height: 220px;
+            object-fit: cover;
+            border-radius: 20px;
+            border: 4px solid #fff;
+            box-shadow: 0 0 40px rgba(0,0,0,0.8);
             background: #222;
         }
-
-        #dialogue-box {
-            position: absolute; 
-            bottom: 175px; /* Positioned above character */
-            right: 30px;   /* Aligned with character area */
-            left: auto;    /* Reset left alignment */
-            transform: scale(0);
-            transform-origin: bottom right; /* Grows from the character */
-            background: rgba(255, 255, 255, 0.95);
-            color: #222; 
-            padding: 15px 20px;
-            border-radius: 20px; 
-            border-bottom-right-radius: 2px; /* Sharp corner pointing to mouth */
-            max-width: 200px; 
-            text-align: left;
-            font-weight: 700; 
-            font-size: 15px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.4);
-            transition: all 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28); /* Bouncy animation */
-            opacity: 0;
-            z-index: 20; 
-            border: 3px solid var(--primary);
+        
+        #reaction-bubble {
+            background: white; color: #222;
+            padding: 10px 20px; border-radius: 20px;
+            font-weight: bold; margin-bottom: 10px;
+            text-align: center; font-size: 16px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            max-width: 90%;
+            animation: float 2s infinite ease-in-out;
         }
-        #dialogue-box.active { transform: scale(1); opacity: 1; }
+
+        /* Animations */
+        @keyframes shake {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            25% { transform: translate(-52%, -50%) rotate(-5deg); }
+            75% { transform: translate(-48%, -50%) rotate(5deg); }
+            100% { transform: translate(-50%, -50%) rotate(0deg); }
+        }
+        .anim-shake #reaction-image { animation: shake 0.4s ease-in-out; border-color: #ff3333; }
+
+        @keyframes pop {
+            0% { transform: scale(0.8); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .anim-pop #reaction-image { animation: pop 0.4s ease-out; border-color: #00d4ff; }
+
+        @keyframes victoryBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        .anim-win #reaction-image { animation: victoryBounce 1s infinite; border-color: gold; box-shadow: 0 0 50px gold; }
+
+        .anim-lose #reaction-image { filter: grayscale(100%); border-color: #555; }
+
+        /* --- BOTTOM RIGHT CHARACTER (Persistent) --- */
+        #character-area {
+            position: absolute; bottom: 20px; right: 20px;
+            width: 100px; height: 100px; /* Smaller when passive */
+            pointer-events: none; z-index: 5;
+            transition: opacity 0.3s;
+        }
+        #waifu-sprite {
+            width: 100%; height: 100%; object-fit: cover;
+            border-radius: 15px; border: 2px solid rgba(255,255,255,0.2);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            background: #222;
+        }
 
         /* Screens */
         .screen {
             position: absolute; top: 0; left: 0;
             width: 100%; height: 100%;
-            background: rgba(13, 13, 22, 0.98);
+            background: rgba(13, 13, 22, 0.95);
             display: flex; flex-direction: column;
             justify-content: center; align-items: center;
             z-index: 100; pointer-events: auto;
@@ -157,7 +182,6 @@
         }
         .btn:active { transform: scale(0.95); }
 
-        /* Char Select */
         .char-grid { display: flex; gap: 15px; margin-bottom: 30px; }
         .char-card {
             width: 100px; height: 140px;
@@ -169,35 +193,14 @@
             overflow: hidden;
             position: relative;
         }
-        .char-card img {
-            width: 100%; height: 100%; object-fit: cover;
-            opacity: 0.6; transition: 0.3s;
-        }
-        .char-card.selected {
-            border-color: var(--primary);
-            background: rgba(0, 212, 255, 0.15);
-            transform: translateY(-5px);
-        }
+        .char-card img { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; transition: 0.3s; }
+        .char-card.selected { border-color: var(--primary); background: rgba(0, 212, 255, 0.15); transform: translateY(-5px); }
         .char-card.selected img { opacity: 1; }
-        
-        /* Text overlay on card */
-        .char-info {
-            position: absolute; bottom: 0; width: 100%;
-            background: rgba(0,0,0,0.7);
-            text-align: center; padding: 5px 0;
-        }
+        .char-info { position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.7); text-align: center; padding: 5px 0; }
         .char-name { color: white; font-size: 12px; font-weight: bold; }
 
-        /* Level Victory Screen Specifics */
-        #victory-screen h1 {
-            background: -webkit-linear-gradient(45deg, #ffd700, #ff8c00);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        }
-        .stat-box {
-            background: rgba(255,255,255,0.1);
-            padding: 15px; border-radius: 10px;
-            text-align: center; color: white; margin-bottom: 20px;
-        }
+        #victory-screen h1 { background: -webkit-linear-gradient(45deg, #ffd700, #ff8c00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .stat-box { background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; text-align: center; color: white; margin-bottom: 20px; }
 
     </style>
 </head>
@@ -218,12 +221,15 @@
                 </div>
             </div>
             
-            <div id="dialogue-box">...</div>
+            <!-- IMMERSIVE CENTER REACTION -->
+            <div id="reaction-overlay">
+                <div id="reaction-bubble">Nice Shot!</div>
+                <img id="reaction-image" src="" alt="Reaction">
+            </div>
 
+            <!-- Small Corner Character (Always there) -->
             <div id="character-area">
-                <!-- IMPORTANT: This img tag is where the character loads -->
-                <img id="waifu-sprite" src="" style="display:none;" alt="Character" onerror="this.style.display='none'; document.getElementById('fallback-visual').style.display='block';">
-                <div id="fallback-visual" style="display:none; font-size: 80px; margin-bottom: 0;"></div> 
+                <img id="waifu-sprite" src="" alt="Character">
             </div>
         </div>
 
@@ -232,17 +238,14 @@
             <h1>Waifu<br>Breaker</h1>
             <p style="color:#aaa; font-size:14px; margin-bottom:15px;">SELECT YOUR PARTNER</p>
             <div class="char-grid">
-                <!-- Yandere Selection (Updated Image Path) -->
                 <div class="char-card" onclick="selectChar('yandere', this)">
                     <img src="assets/akari_neutral.jpg" alt="Akari">
                     <div class="char-info"><div class="char-name">Akari</div></div>
                 </div>
-                <!-- Tsundere Selection (Updated Image Path) -->
                 <div class="char-card selected" onclick="selectChar('tsundere', this)">
                     <img src="assets/rin_neutral.jpg" alt="Rin">
                     <div class="char-info"><div class="char-name">Rin</div></div>
                 </div>
-                <!-- Child Selection (Updated Image Path) -->
                 <div class="char-card" onclick="selectChar('child', this)">
                     <img src="assets/hana_neutral.jpg" alt="Hana">
                     <div class="char-info"><div class="char-name">Hana</div></div>
@@ -253,20 +256,25 @@
 
         <!-- Level Complete Screen -->
         <div id="victory-screen" class="screen hidden">
-            <h1>VICTORY!</h1>
-            <div class="stat-box">
-                <p style="font-size:18px; margin:0;">Level <span id="vic-level">1</span> Complete</p>
-                <p style="font-size:14px; color:#ccc; margin-top:5px;" id="vic-msg">"Good job!"</p>
+            <!-- Content filled dynamically for immersive effect -->
+            <div style="margin-top: 250px;"> <!-- Push content down so center image is visible -->
+                <h1>VICTORY!</h1>
+                <div class="stat-box">
+                    <p style="font-size:18px; margin:0;">Level <span id="vic-level">1</span> Complete</p>
+                    <p style="font-size:14px; color:#ccc; margin-top:5px;" id="vic-msg">"Good job!"</p>
+                </div>
+                <button class="btn" onclick="nextLevel()">NEXT LEVEL</button>
             </div>
-            <button class="btn" onclick="nextLevel()">NEXT LEVEL</button>
         </div>
 
         <!-- Game Over Screen -->
         <div id="game-over-screen" class="screen hidden">
-            <h1 style="color:#ff3333 !important; -webkit-text-fill-color: #ff3333;">DEFEAT</h1>
-            <p id="lose-msg" style="color:white; margin-bottom:20px; text-align:center; padding:0 20px;">...</p>
-            <button class="btn" onclick="retryLevel()">TRY AGAIN</button>
-            <button class="btn" style="background:#444; font-size:16px;" onclick="showStartScreen()">MENU</button>
+             <div style="margin-top: 250px;">
+                <h1 style="color:#ff3333 !important; -webkit-text-fill-color: #ff3333;">DEFEAT</h1>
+                <p id="lose-msg" style="color:white; margin-bottom:20px; text-align:center; padding:0 20px;">...</p>
+                <button class="btn" onclick="retryLevel()">TRY AGAIN</button>
+                <button class="btn" style="background:#444; font-size:16px;" onclick="showStartScreen()">MENU</button>
+            </div>
         </div>
         
         <!-- Game Complete (All Levels) -->
@@ -280,13 +288,12 @@
 
     <script>
         /* =========================================
-           ASSETS CONFIGURATION (UPDATED FOR ASSETS FOLDER)
+           ASSETS
            ========================================= */
         const ASSETS = {
             yandere: {
                 name: "Akari", 
                 color: "#ff003c", 
-                fallback_emoji: "😈",
                 expressions: {
                     neutral: "assets/akari_neutral.jpg", 
                     win: "assets/akari_win.jpg",    
@@ -294,17 +301,17 @@
                     action: "assets/akari_action.jpg"  
                 },
                 lines: {
-                    start: ["Level {L}? Easy for us.", "Don't let them touch me."],
-                    win: ["See? We are perfect together.", "Next level... don't leave me."],
-                    lose: ["No... NO! Try again!", "I won't let it end here."],
+                    start: ["Level {L}? Easy.", "Don't let them touch me."],
+                    win: ["Perfect together.", "Don't leave me."],
+                    lose: ["No... NO!", "I won't let it end!"],
                     hit: ["Die!", "Break!"],
-                    combo: ["Wonderful!", "Yes! YES!"]
+                    combo: ["Wonderful!", "Yes! YES!"],
+                    poor: ["Is that it?", "Try harder."]
                 }
             },
             tsundere: {
                 name: "Rin", 
                 color: "#ff9100", 
-                fallback_emoji: "😒",
                 expressions: {
                     neutral: "assets/rin_neutral.jpg", 
                     win: "assets/rin_win.jpg", 
@@ -312,17 +319,17 @@
                     action: "assets/rin_action.jpg" 
                 },
                 lines: {
-                    start: ["Level {L}... try not to mess up.", "I'm ready, I guess."],
-                    win: ["Hmph. Not bad.", "Finally over. Next?"],
-                    lose: ["Are you kidding me?!", "I can't believe you lost!"],
+                    start: ["Don't mess up.", "I'm ready, I guess."],
+                    win: ["Hmph. Not bad.", "Finally over."],
+                    lose: ["Are you kidding?!", "Unbelievable!"],
                     hit: ["Take that!", "Weak!"],
-                    combo: ["Okay, you're good!", "Don't get cocky!"]
+                    combo: ["Okay, you're good!", "Wow!"],
+                    poor: ["Really?", "Baka!"]
                 }
             },
             child: {
                 name: "Hana", 
                 color: "#00ffaa", 
-                fallback_emoji: "✨",
                 expressions: {
                     neutral: "assets/hana_neutral.jpg", 
                     win: "assets/hana_win.jpg", 
@@ -330,18 +337,16 @@
                     action: "assets/hana_action.jpg" 
                 },
                 lines: {
-                    start: ["Level {L}! Let's go!", "Hana will help!"],
+                    start: ["Let's go!", "Hana will help!"],
                     win: ["Yay! We won!", "Did you see that?!"],
-                    lose: ["Ouchie...", "Hana wants to try again!"],
+                    lose: ["Ouchie...", "Hana is sad..."],
                     hit: ["Boing!", "Pop!"],
-                    combo: ["Wow!", "So fast!"]
+                    combo: ["Wow!", "So fast!"],
+                    poor: ["Uh oh...", "Missed it!"]
                 }
             }
         };
 
-        /* =========================================
-           LEVEL CONFIGURATION
-           ========================================= */
         const LEVELS = [
             { id: 1, name: "Tutorial", rows: 3,  hpMin: 1, hpMax: 2 },
             { id: 2, name: "Warm Up",  rows: 5,  hpMin: 2, hpMax: 4 },
@@ -357,12 +362,10 @@
         const ctx = canvas.getContext('2d');
         let width, height;
 
-        // Constants
         const COLS = 9;
         const BOTTOM_MARGIN = 200; 
         const TOP_MARGIN = 60;
 
-        // Game State
         let selectedCharKey = 'tsundere';
         let currentLevelIndex = 0;
         let gameState = 'START';
@@ -384,11 +387,11 @@
         let newStartX = null;
         let isDragging = false;
         let mouseX=0, mouseY=0;
-        
-        // Expression Timer
-        let expressionResetTimer = null;
 
-        // Resize Logic
+        // NEW: Turn Stats
+        let hitsThisTurn = 0;
+        let reactionTimer = null;
+
         function resize() {
             const container = document.getElementById('game-container');
             width = canvas.width = container.clientWidth;
@@ -415,7 +418,8 @@
         function initLevel(levelNum) {
             currentLevelIndex = levelNum - 1;
             document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
-            
+            hideReaction(); // Clear any old reactions
+
             balls = [];
             blocks = [];
             particles = [];
@@ -423,19 +427,19 @@
             ballCount = 1 + (currentLevelIndex * 2);
             score = 0;
             rowsSpawned = 0;
+            hitsThisTurn = 0;
             
             startX = width / 2;
             startY = height - BOTTOM_MARGIN;
             
-            setExpression('neutral'); // Reset face
             updateVisuals();
             updateProgressUI();
             addBlockRow(); 
 
             gameState = 'AIMING';
-            let txt = ASSETS[selectedCharKey].lines.start[0].replace("{L}", levelNum);
-            showDialogue(txt);
-            setExpression('action', 2000); // Show excitement at start
+            
+            // Show start reaction
+            triggerReaction('start', ASSETS[selectedCharKey].lines.start[0]);
             
             requestAnimationFrame(gameLoop);
         }
@@ -459,37 +463,68 @@
             const char = ASSETS[selectedCharKey];
             document.documentElement.style.setProperty('--primary', char.color);
             document.getElementById('level-display').innerText = currentLevelIndex + 1;
-            // setExpression is called separately to handle state
+            // Set corner sprite to neutral by default
+            document.getElementById('waifu-sprite').src = char.expressions.neutral;
         }
-        
-        // New Function: Handles switching character images
-        function setExpression(type, duration = 0) {
+
+        /* --- IMMERSIVE REACTION SYSTEM --- */
+        function triggerReaction(type, textOverride = null) {
+            const overlay = document.getElementById('reaction-overlay');
+            const img = document.getElementById('reaction-image');
+            const bubble = document.getElementById('reaction-bubble');
             const char = ASSETS[selectedCharKey];
-            const sprite = document.getElementById('waifu-sprite');
-            const fallback = document.getElementById('fallback-visual');
-            
-            // Get the correct image file based on type
-            let imgSrc = char.expressions[type] || char.expressions.neutral;
-            
-            if (imgSrc) {
-                sprite.src = imgSrc;
-                sprite.style.display = 'block';
-                fallback.style.display = 'none';
-            } else {
-                sprite.style.display = 'none';
-                fallback.innerText = char.fallback_emoji;
-                fallback.style.display = 'block';
+
+            let imgSrc = char.expressions.neutral;
+            let text = "";
+            let animClass = "";
+
+            // Determine assets based on type
+            if (type === 'start') {
+                imgSrc = char.expressions.neutral;
+                text = textOverride || char.lines.start[0];
+                animClass = 'anim-pop';
+            }
+            else if (type === 'good') { // High Combo
+                imgSrc = char.expressions.action;
+                text = char.lines.combo[Math.floor(Math.random()*char.lines.combo.length)];
+                animClass = 'anim-pop';
+            } 
+            else if (type === 'bad') { // Low Hits
+                imgSrc = char.expressions.lose;
+                text = char.lines.poor[Math.floor(Math.random()*char.lines.poor.length)];
+                animClass = 'anim-shake';
+            }
+            else if (type === 'win') {
+                imgSrc = char.expressions.win;
+                text = textOverride || char.lines.win[0];
+                animClass = 'anim-win';
+            }
+            else if (type === 'lose') {
+                imgSrc = char.expressions.lose;
+                text = textOverride || char.lines.lose[0];
+                animClass = 'anim-lose';
             }
 
-            // If duration is set, revert to neutral after X ms
-            if (duration > 0) {
-                if (expressionResetTimer) clearTimeout(expressionResetTimer);
-                expressionResetTimer = setTimeout(() => {
-                    if (gameState !== 'END') { // Don't revert if game over/won
-                        setExpression('neutral');
-                    }
-                }, duration);
+            // Apply
+            img.src = imgSrc;
+            bubble.innerText = text;
+            
+            // Reset Animation
+            overlay.className = ''; 
+            void overlay.offsetWidth; // Trigger reflow
+            overlay.className = 'active ' + animClass;
+
+            // Auto-hide if not a game-ending state
+            if (reactionTimer) clearTimeout(reactionTimer);
+            if (type !== 'win' && type !== 'lose') {
+                reactionTimer = setTimeout(() => {
+                    hideReaction();
+                }, 2000); // Show for 2 seconds
             }
+        }
+
+        function hideReaction() {
+            document.getElementById('reaction-overlay').className = '';
         }
 
         function updateProgressUI() {
@@ -539,7 +574,9 @@
             gameState = 'SHOOTING';
             ballsToShoot = ballCount;
             shootTimer = 0;
+            hitsThisTurn = 0; // Reset turn stats
             newStartX = null;
+            hideReaction(); // Hide any lingering reaction when shooting starts
         }
 
         function updatePhysics() {
@@ -580,6 +617,7 @@
                             createParticles(b.x + blockWidth/2, b.y + blockHeight/2, '#fff', 5);
                             blocks.splice(i, 1);
                         } else {
+                            // Collision logic
                             let overlapLeft = (ball.x + ballRadius) - b.x;
                             let overlapRight = (b.x + blockWidth) - (ball.x - ballRadius);
                             let overlapTop = (ball.y + ballRadius) - b.y;
@@ -589,13 +627,11 @@
                             else ball.vy *= -1;
 
                             b.hp--; score++;
+                            hitsThisTurn++; // Count hit!
+                            
                             if (b.hp <= 0) {
                                 createParticles(b.x + blockWidth/2, b.y + blockHeight/2, b.color, 8);
                                 blocks.splice(i, 1);
-                                if(Math.random() > 0.8) {
-                                    showDialogue(ASSETS[selectedCharKey].lines.hit[0]);
-                                    setExpression('action', 1500); // Change face on hit
-                                }
                             }
                         }
                         break; 
@@ -614,25 +650,48 @@
             if (newStartX !== null) startX = Math.max(20, Math.min(width - 20, newStartX));
             balls = [];
             const lvl = LEVELS[currentLevelIndex];
-            if (blocks.length === 0 && rowsSpawned >= lvl.rows) levelVictory();
-            else { addBlockRow(); if (gameState !== 'END') gameState = 'AIMING'; }
+            
+            // Check Turn Performance
+            if (blocks.length === 0 && rowsSpawned >= lvl.rows) {
+                levelVictory();
+                return;
+            } 
+            
+            // Logic for Reactions based on hitsThisTurn
+            if (hitsThisTurn <= 2 && hitsThisTurn > -1) {
+                triggerReaction('bad');
+            } else if (hitsThisTurn >= 6) {
+                triggerReaction('good');
+            }
+
+            addBlockRow(); 
+            if (gameState !== 'END') gameState = 'AIMING';
         }
 
         function levelVictory() {
             gameState = 'END';
             const char = ASSETS[selectedCharKey];
-            setExpression('win'); // Persistent win face
             document.getElementById('vic-level').innerText = currentLevelIndex + 1;
             document.getElementById('vic-msg').innerText = char.lines.win[0];
             document.getElementById('victory-screen').classList.remove('hidden');
+            
+            // Show Victory Reaction
+            triggerReaction('win');
+            
+            // Confetti effect
+            for(let i=0; i<50; i++) {
+                createParticles(width/2, height/2, `hsl(${Math.random()*360}, 100%, 50%)`, 2);
+            }
         }
 
         function gameOver() {
             gameState = 'END';
             const char = ASSETS[selectedCharKey];
-            setExpression('lose'); // Persistent lose face
             document.getElementById('lose-msg').innerText = char.lines.lose[0];
             document.getElementById('game-over-screen').classList.remove('hidden');
+            
+            // Show Defeat Reaction
+            triggerReaction('lose');
         }
 
         function createParticles(x, y, color, count) {
@@ -643,14 +702,6 @@
                     life: 1.0, color: color
                 });
             }
-        }
-
-        function showDialogue(text) {
-            const box = document.getElementById('dialogue-box');
-            box.innerText = text;
-            box.style.borderColor = ASSETS[selectedCharKey].color;
-            box.classList.add('active');
-            setTimeout(() => box.classList.remove('active'), 2500);
         }
 
         // --- Input & Draw ---
